@@ -2,7 +2,7 @@
 
 This is the repo for my (Hungarian) [Twitch streams](https://www.twitch.tv/gerifield) where I speak a bit about scaling an application.
 
-Each scale<num> folder more or less the same basic message board application, but I'll try to introduce new scaling methods and summarize the positive and negative sides of them.
+Each scale# folder more or less the same basic message board application, but I'll try to introduce new scaling methods and summarize the positive and negative sides of them.
 
 Apps:
 
