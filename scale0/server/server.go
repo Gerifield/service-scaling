@@ -1,22 +1,26 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
-	"time"
 
+	"github.com/gerifield/service-scaling/scale0/model"
 	"github.com/go-chi/chi/v5"
-	"github.com/google/uuid"
-	"github.com/jmoiron/sqlx"
 )
 
-type Server struct {
-	db *sqlx.DB
+type appLogic interface {
+	Save(ctx context.Context, content string) (string, error)
+	GetAll(ctx context.Context) ([]model.Message, error)
 }
 
-func New(db *sqlx.DB) *Server {
+type Server struct {
+	app appLogic
+}
+
+func New(app appLogic) *Server {
 	return &Server{
-		db: db,
+		app: app,
 	}
 }
 
@@ -41,13 +45,7 @@ func (s *Server) saveMessage(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := uuid.NewRandom()
-	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	_, err = s.db.Exec("INSERT INTO messages (id, content) VALUES (?, ?)", id.String(), inp.Content)
+	id, err := s.app.Save(r.Context(), inp.Content)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
@@ -56,26 +54,19 @@ func (s *Server) saveMessage(rw http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(rw).Encode(struct {
 		ID string `json:"id"`
 	}{
-		ID: id.String(),
+		ID: id,
 	})
 }
 
 func (s *Server) getMessages(rw http.ResponseWriter, r *http.Request) {
-	type model struct {
-		ID        string    `db:"id" json:"id"`
-		Content   string    `db:"content" json:"content"`
-		CreatedAt time.Time `db:"created_at" json:"created_at"`
-	}
-
-	var resp []model
-	err := s.db.Select(&resp, "SELECT id, content, created_at FROM messages LIMIT 100")
+	resp, err := s.app.GetAll(r.Context())
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	json.NewEncoder(rw).Encode(struct {
-		Results []model `json:"results"`
+		Results []model.Message `json:"results"`
 	}{
 		Results: resp,
 	})
