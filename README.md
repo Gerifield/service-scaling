@@ -7,4 +7,5 @@ Each scale# folder more or less the same basic message board application, but I'
 Apps:
 
 - [`scale0/`](scale0/) - Basic application where you can save a message and then retrive the message list. Nothing special, just a simple MySQL database save an fetch.
+- [`scale1/`](scale1/) - First step for the actual scaling with some Redis based cache in the application.
 
