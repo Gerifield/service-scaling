@@ -1,4 +1,4 @@
-module github.com/gerifield/service-scaling/scale2
+module github.com/gerifield/service-scaling/scale3
 
 go 1.17
 

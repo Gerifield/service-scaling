@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/gerifield/service-scaling/scale2/model"
+	"github.com/gerifield/service-scaling/scale3/model"
 	"github.com/google/uuid"
 )
 
@@ -24,15 +24,21 @@ type cache interface {
 	Invalidate(ctx context.Context, key string) error
 }
 
-type Logic struct {
-	messageRepo messageRepo
-	cache       cache
+type queue interface {
+	Put(ctx context.Context, val string) error
 }
 
-func New(messageRepo messageRepo, cache cache) *Logic {
+type Logic struct {
+	messageRepo  messageRepo
+	cache        cache
+	msgSaveQueue queue
+}
+
+func New(messageRepo messageRepo, cache cache, msgSaveQueue queue) *Logic {
 	return &Logic{
-		messageRepo: messageRepo,
-		cache:       cache,
+		messageRepo:  messageRepo,
+		cache:        cache,
+		msgSaveQueue: msgSaveQueue,
 	}
 }
 
@@ -42,12 +48,13 @@ func (l *Logic) Save(ctx context.Context, content string) (string, error) {
 		return "", err
 	}
 
-	err = l.messageRepo.Save(ctx, id.String(), content)
-	if err == nil {
-		log.Println("invalidating the cache")
-		_ = l.cache.Invalidate(ctx, getAllCacheKey)
-	}
-
+	err = l.msgSaveQueue.Put(ctx, model.QueueMessage{
+		MsgType: model.MsgTypeSave,
+		Payload: model.SaveMessagePayload{
+			ID:      id.String(),
+			Content: content,
+		},
+	}.ToString())
 	return id.String(), err
 }
 

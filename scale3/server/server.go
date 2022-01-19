@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/gerifield/service-scaling/scale2/model"
+	"github.com/gerifield/service-scaling/scale3/model"
 	"github.com/go-chi/chi/v5"
 )
 

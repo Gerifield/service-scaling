@@ -1,4 +1,4 @@
-# Scale2
+# Scale3
 
 This is the second increment which multiple (read/write) db connection.
 

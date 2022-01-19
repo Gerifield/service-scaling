@@ -3,7 +3,7 @@ package db
 import (
 	"context"
 
-	"github.com/gerifield/service-scaling/scale2/model"
+	"github.com/gerifield/service-scaling/scale3/model"
 	"github.com/jmoiron/sqlx"
 )
 

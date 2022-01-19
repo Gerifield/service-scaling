@@ -1,23 +1,22 @@
 package main
 
 import (
+	"context"
+	"encoding/json"
 	"flag"
 	"log"
-	"net/http"
+
+	"github.com/gerifield/service-scaling/scale3/cache"
+	"github.com/gerifield/service-scaling/scale3/db"
+	"github.com/gerifield/service-scaling/scale3/model"
+	"github.com/gerifield/service-scaling/scale3/queue"
 
 	"github.com/go-redis/redis/v8"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
-
-	"github.com/gerifield/service-scaling/scale3/app"
-	"github.com/gerifield/service-scaling/scale3/cache"
-	"github.com/gerifield/service-scaling/scale3/db"
-	"github.com/gerifield/service-scaling/scale3/queue"
-	"github.com/gerifield/service-scaling/scale3/server"
 )
 
 func main() {
-	addr := flag.String("addr", ":8080", "HTTP Listen address")
 	wSQLConf := flag.String("writeSQLConf", "api:api@tcp(db:3306)/api?parseTime=true", "Writer MySQL connection string")
 	rSQLConf := flag.String("readSQLConf", "api:api@tcp(db:3306)/api?parseTime=true", "Reader MySQL connection string")
 	redisAddr := flag.String("redisAddr", "redis:6379", "Redis connection address")
@@ -39,12 +38,39 @@ func main() {
 		DB:       0,  // use default DB
 	})
 
-	redisCache := cache.NewRedis(rdb)
 	msgSaveQueue := queue.New(rdb, "queue:message-save")
 	repo := db.New(wDBConn, rDBConn)
-	appLogic := app.New(repo, redisCache, msgSaveQueue)
-	s := server.New(appLogic)
+	redisCache := cache.NewRedis(rdb)
 
-	log.Println("Started", *addr)
-	http.ListenAndServe(*addr, s.Routes())
+	for {
+		log.Println("Wait for message")
+		it, err := msgSaveQueue.Get(context.Background())
+		if err != nil {
+
+			log.Println("Queue read failed", err)
+			continue
+		}
+
+		var pl model.QueueMessage
+		err = json.Unmarshal([]byte(it), &pl)
+		if err != nil {
+			log.Println("JSON read failed", err)
+			continue
+		}
+
+		switch pl.MsgType {
+		case model.MsgTypeSave:
+			payload := pl.Payload
+
+			err = repo.Save(context.Background(), payload.ID, payload.Content)
+			if err != nil {
+				log.Println("db save failed", err)
+				continue
+			}
+			log.Println("Message saved", payload.ID)
+
+			log.Println("invalidating the cache")
+			_ = redisCache.Invalidate(context.Background(), "cacheKey:getAll")
+		}
+	}
 }

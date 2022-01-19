@@ -31,3 +31,11 @@ services:
     restart: always
     ports:
       - "8080:8080"
+  worker:
+    depends_on:
+      - db
+      - redis
+    build:
+      context: .
+      dockerfile: Dockerfile-worker
+    restart: always
