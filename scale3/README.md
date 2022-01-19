@@ -1,6 +1,6 @@
 # Scale3
 
-This is the second increment which multiple (read/write) db connection.
+This is the third increment with message queue.
 
 
 Star the services:
