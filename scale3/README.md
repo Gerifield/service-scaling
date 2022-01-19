@@ -1,6 +1,6 @@
 # Scale2
 
-This is the first increment which introduces some caching.
+This is the second increment which multiple (read/write) db connection.
 
 
 Star the services:

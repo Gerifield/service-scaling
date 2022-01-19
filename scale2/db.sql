@@ -1,0 +1,7 @@
+use api;
+
+CREATE TABLE messages (
+    id char(36) PRIMARY KEY,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
