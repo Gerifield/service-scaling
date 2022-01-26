@@ -10,4 +10,5 @@ Apps:
 - [`scale1/`](scale1/) - First step for the actual scaling with some Redis based cache in the application.
 - [`scale2/`](scale2/) - Second step for the scaling with read/write database replica connections.
 - [`scale3/`](scale3/) - Let's have some real async functionality with a message queue!
+- [`k8s/`](k8s/) - A minimal kubernetes example with a simple deployment, service and ingress config.
 
