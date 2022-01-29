@@ -1,0 +1,18 @@
+# Default values for myapp.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+apps:
+  - name: worker
+    replicaCount: 2
+    image: "app-worker"
+    tag: "1.0.0"
+  - name: api
+    replicaCount: 3
+    image: "app-api"
+    tag: "1.0.0"
+    port: 80
+
+services:
+  - name: api
+    port: 80
